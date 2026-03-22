@@ -5,6 +5,7 @@ import com.lehdev.agendar_horarios.infrastructure.repository.AgendamentoReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -23,8 +24,29 @@ public class AgendamentoService {
 
         if (Objects.nonNull(agendados)){
             throw new RuntimeException("Horário já está reservado.");
-        } else {
-            return agendamentoRepository.save(agendamento);
         }
+        return agendamentoRepository.save(agendamento);
+    }
+
+    public void deletarAgendamento(LocalDateTime dataHoraAgendamento, String cliente) {
+        agendamentoRepository.deleteByDataHoraAgendamentoAndCliente(dataHoraAgendamento, cliente);
+    }
+
+    public Agendamento buscarAgendamentosDia(LocalDate data) {
+        LocalDateTime primeiraHoraDia = data.atStartOfDay();
+        LocalDateTime horaFinalDia = data.atTime(23, 59, 59);
+
+        return agendamentoRepository.findByDataHoraAgendamentoBetween(primeiraHoraDia, horaFinalDia);
+    }
+
+    public Agendamento alterarAgendamento(Agendamento agendamento, String cliente, LocalDateTime dataHoraAgendamento) {
+         Agendamento agenda = agendamentoRepository.findByDataAgendamentoAndCliente(dataHoraAgendamento, cliente);
+
+         if (Objects.isNull(agenda)) {
+             throw new RuntimeException("Horário não está preenchido");
+         }
+
+         agendamento.setId(agenda.getId());
+         return agendamentoRepository.save(agendamento);
     }
 }
